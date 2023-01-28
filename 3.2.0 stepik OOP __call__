@@ -1,0 +1,20 @@
+from random import randint, sample
+
+
+class RandomPassword:
+    def __init__(self, psw_chars, min_length, max_length):
+        self.psw_chars = psw_chars
+        self.min_lenght = min_length
+        self.max_lenght = max_length
+
+    def __call__(self, *args, **kwargs):
+        len_password = randint(self.min_lenght, self.max_lenght)
+        password = ''.join(sample(self.psw_chars, len_password))
+        return password
+
+
+min_length = 5
+max_length = 20
+psw_chars = "qwertyuiopasdfghjklzxcvbnm0123456789!@#$%&*"
+r_passw = RandomPassword(psw_chars, min_length, max_length)
+lst_pass = [r_passw() for i in range(3)]
