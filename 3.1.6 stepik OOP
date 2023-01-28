@@ -1,0 +1,111 @@
+import time
+
+
+class GeyserClassic:
+    MAX_DATE_FILTER = 100
+    slot_1 = None
+    slot_2 = None
+    slot_3 = None
+
+    def __setattr__(self, key, value):
+        validate_type = {'slot_1': type(value) == type(Mechanical()),
+                         'slot_2': type(value) == type(Aragon()),
+                         'slot_3': type(value) == type(Calcium())}
+        if validate_type[key] and not key in self.__dict__:
+            super().__setattr__(key, value)
+
+    def add_filter(self, slot_num, filter):
+        if slot_num == 1:
+            self.slot_1 = filter
+        elif slot_num == 2:
+            self.slot_2 = filter
+        elif slot_num == 3:
+            self.slot_3 = filter
+
+    def remove_filter(self, slot_num):
+        delattr(self, f'slot_{slot_num}')
+
+    def get_filters(self):
+        s = []
+        for i in self.__dict__:
+            if 'slot' in i:
+                s.append(self.__dict__[i])
+        return tuple(s)
+
+    def water_on(self):
+        a = self.get_filters()
+        validate_date = all([0 <= (time.time() - i.date) < self.MAX_DATE_FILTER for i in a])
+        return len(a) == 3 and validate_date
+
+
+class Mechanical:
+
+    def __init__(self, date=None):
+        self.date = date
+
+    def __getattribute__(self, item):
+        return super().__getattribute__(item)
+
+    def __setattr__(self, key, value):
+        if not key in self.__dict__:
+            super().__setattr__(key, value)
+
+
+class Aragon:
+    def __init__(self, date=None):
+        self.date = date
+
+    def __getattribute__(self, item):
+        return super().__getattribute__(item)
+
+    def __setattr__(self, key, value):
+        if not key in self.__dict__:
+            super().__setattr__(key, value)
+
+
+class Calcium:
+    def __init__(self, date=None):
+        self.date = date
+
+    def __getattribute__(self, item):
+        return super().__getattribute__(item)
+
+    def __setattr__(self, key, value):
+        if not key in self.__dict__:
+            super().__setattr__(key, value)
+
+
+my_water = GeyserClassic()
+my_water.add_filter(1, Mechanical(time.time()))
+my_water.add_filter(2, Aragon(time.time()))
+
+assert my_water.water_on() == False, "метод water_on вернул True, хотя не все фильтры были установлены"
+
+my_water.add_filter(3, Calcium(time.time()))
+assert my_water.water_on(), "метод water_on вернул False при всех трех установленных фильтрах"
+
+f1, f2, f3 = my_water.get_filters()
+assert isinstance(f1, Mechanical) and isinstance(f2, Aragon) and isinstance(f3, Calcium), "фильтры должны быть устанлены в порядке: Mechanical, Aragon, Calcium"
+
+my_water.remove_filter(1)
+assert my_water.water_on() == False, "метод water_on вернул True, хотя один из фильтров был удален"
+
+my_water.add_filter(1, Mechanical(time.time()))
+assert my_water.water_on(), "метод water_on вернул False, хотя все три фильтра установлены"
+
+f1, f2, f3 = my_water.get_filters()
+my_water.remove_filter(1)
+
+my_water.add_filter(1, Mechanical(time.time() - GeyserClassic.MAX_DATE_FILTER - 1))
+assert my_water.water_on() == False, "метод water_on вернул True, хотя у одного фильтра истек срок его работы"
+
+f1 = Mechanical(1.0)
+f2 = Aragon(2.0)
+f3 = Calcium(3.0)
+assert 0.9 < f1.date < 1.1 and 1.9 < f2.date < 2.1 and 2.9 < f3.date < 3.1, "неверное значение атрибута date в объектах фильтров"
+
+f1.date = 5.0
+f2.date = 5.0
+f3.date = 5.0
+
+assert 0.9 < f1.date < 1.1 and 1.9 < f2.date < 2.1 and 2.9 < f3.date < 3.1, "локальный атрибут date в объектах фильтров должен быть защищен от изменения"
